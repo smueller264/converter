@@ -2,6 +2,10 @@ package parser
 
 import (
 	"encoding/xml"
+	"io"
+	"log"
+	"net/http"
+	"os"
 )
 
 type Item struct {
@@ -32,7 +36,7 @@ type Catalog struct {
 }
 
 type Reader interface {
-	ReadFile(filepath string) (catalog Catalog, err error)
+	MarshalData(incdata []byte) (catalog Catalog, err error)
 	CanHandle(format string) bool
 }
 
@@ -40,25 +44,82 @@ type Writer interface {
 	WriteFile(catalog Catalog) error
 }
 
-type ReaderController struct {
+// Here you can add new Readers to extend functionality
+var xmlReader = XMLReader{}
+
+var readers = []Reader{
+	xmlReader,
 }
 
-func ReadData() (*Catalog, error) {
-	xmlReader := XMLReader{}
-	readers := []Reader{xmlReader}
+// Start the parsing process
+func Parse(fileOrigin string, filePath string) {
+	//reading the file
+	data, err := ReadData(fileOrigin, filePath)
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//saving the file, here you can add any ouput format by adding a different Writer
+	csvWriter := CSVWriter{}
+	csvWriter.WriteFile("output.csv", *data)
+
+}
+
+// Reading the data
+func ReadData(fileOrigin string, filepath string) (*Catalog, error) {
+
+	var incdata []byte
 	var err error
-	data := Catalog{}
+
+	//get online file
+	if fileOrigin == "online" {
+		resp, err := http.Get(filepath)
+		if err != nil {
+			log.Fatal("Error in getting file online")
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			log.Fatal("Error in Status code")
+		}
+
+		incdata, err = io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal("Error in reading online file")
+		}
+		//get offline file
+	} else {
+		// Open our xmlFile
+		file, err := os.Open(filepath)
+
+		// if we os.Open returns an error then handle it
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// defer the closing of our xmlFile so that we can parse it later on
+		defer file.Close()
+
+		// read our opened xmlFile as a byte array.
+		incdata, err = io.ReadAll(file)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	marshaledData := Catalog{}
 
 	for _, reader := range readers {
 		if reader.CanHandle("xml") {
-			data, err = reader.ReadFile("/..coffee_feed.xml")
+			marshaledData, err = reader.MarshalData(incdata)
 			if err != nil {
 				return nil, err
 			}
 
 		}
 	}
-	return &data, nil
+	return &marshaledData, nil
 
 }

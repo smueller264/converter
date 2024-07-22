@@ -1,0 +1,9 @@
+2024/07/22 18:06:33 not a valid answer
+2024/07/22 18:40:25 open offline: no such file or directory
+2024/07/22 18:47:00 open offline: no such file or directory
+2024/07/22 18:47:22 open offline: no such file or directory
+2024/07/22 18:48:57 offline
+2024/07/22 18:50:19 /Users/sebastian/dev/go/converter/coffee_feed.xml
+2024/07/22 21:18:34 open offline: no such file or directory
+2024/07/22 21:19:41 open offline: no such file or directory
+2024/07/22 21:22:03 not a valid answer
