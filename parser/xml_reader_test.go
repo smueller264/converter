@@ -4,7 +4,8 @@ import "testing"
 
 func TestReadFile(t *testing.T) {
 	xmlReader := XMLReader{}
-	_, err := xmlReader.ReadFile("../coffee_feed.xml")
+	data := []byte{}
+	_, err := xmlReader.MarshalData(data)
 	if err != nil {
 		t.Error(err)
 	}
